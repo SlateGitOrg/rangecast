@@ -25,16 +25,17 @@ outcomes land inside an 80% band; this project measures that.
 
 ```mermaid
 flowchart TD
-    A[monthly.csv, hotels.csv,<br/>planned_ooo.csv] --> B[Rolling point forecast<br/>same month last year + trailing 3-month change]
-    A --> C[Horizon-specific error pools<br/>in-sample rolling origins, as-of data only]
+    A[monthly.csv, hotels.csv,<br/>planned_ooo.csv<br/>data.py] --> B[Rolling point forecast<br/>pointforecast.py<br/>same month last year + trailing 3-month change]
+    A --> C[Horizon-specific error pools<br/>errors.py<br/>in-sample rolling origins, as-of data only]
     B --> C
-    C --> D[Spearman rho to Pearson<br/>2 sin pi rho / 6]
-    D --> E[Nearest PSD repair<br/>eigenvalue clipping, unit diagonal]
-    E --> F[Gaussian copula Monte Carlo<br/>Cholesky + inverse empirical CDF, 24 dimensions]
+    C --> D[Spearman rho to Pearson<br/>copula.py<br/>2 sin pi rho / 6]
+    D --> E[Nearest PSD repair<br/>copula.py<br/>eigenvalue clipping, unit diagonal]
+    E --> F[Gaussian copula Monte Carlo<br/>copula.py, simulate.py<br/>Cholesky + inverse empirical CDF, 24 dimensions]
     B --> F
-    F --> G[Revenue paths and<br/>P10 / P50 / P90 per hotel and portfolio]
-    G --> H[Backtest loop over origins 37-60<br/>copula vs independent vs flex vs sum of P10s]
-    H --> I[Coverage and interval score<br/>by method and horizon]
+    A --> G
+    F --> G[Revenue paths and<br/>P10 / P50 / P90 per hotel and portfolio<br/>simulate.py, forecast.py]
+    G --> H[Backtest loop over origins 37-60<br/>backtest.py<br/>copula vs independent vs two flex bands vs sum of hotel P10s]
+    H --> I[Coverage and interval score<br/>by method and horizon<br/>report.py]
 ```
 
 * **Data.** `rangecast generate` writes `hotels.csv` (id, market, rooms), `monthly.csv` (rooms available
@@ -42,9 +43,8 @@ flowchart TD
   `truth.json`. There are 12 hotels in 4 markets and 72 months. Shocks mix a market factor (60% of the
   variance), hotel noise, and a 0.6 occupancy-ADR correlation. The monthly shock has a standard
   deviation of 1.0 occupancy point and 3.5% in ADR (log). Occupancy noise is kept small because the
-  point forecast carries about 1.3 times the monthly shock plus shared market noise, and an M2 shift
-  that is meant to be recoverable to within 2 points would be buried by a larger one (at 1.5 points the
-  M2 check failed). ADR is the more volatile driver and carries most of the revenue noise. Two events are injected: market M2 gains
+  point forecast carries about 1.3 times the monthly shock plus shared market noise.
+  ADR is the more volatile driver and carries most of the revenue noise. Two events are injected: market M2 gains
   6 occupancy points from month 50, and hotel H05 has 30% of its rooms out of order in months 64-67,
   announced in `planned_ooo.csv`.
 * **Point forecast.** Occupancy = occupancy a year before the target plus the mean year-over-year change
