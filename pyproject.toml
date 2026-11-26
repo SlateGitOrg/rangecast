@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rangecast"
+version = "0.1.0"
+description = "Monte Carlo hotel revenue ranges with copula-correlated occupancy and ADR, backtested for P10-P90 coverage."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "rangecast contributors" }]
+dependencies = [
+    "numpy>=1.26",
+    "pandas>=2.1",
+    "scipy>=1.11",
+    "matplotlib>=3.8",
+    "typer>=0.12",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pyyaml>=6", "ruff>=0.6"]
+
+[project.scripts]
+rangecast = "rangecast.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rangecast"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+filterwarnings = ["error"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["rangecast"]
